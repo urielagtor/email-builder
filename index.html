@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+
+<style>
+/* ── Variables ─────────────────────────────────────────── */
+:root {
+  --bg:       #0d0f12;
+  --surface:  #13161b;
+  --raised:   #1a1e25;
+  --border:   #252a33;
+  --border2:  #2f3542;
+  --text:     #e2e8f0;
+  --muted:    #64748b;
+  --accent:   #3b82f6;
+  --accent2:  #60a5fa;
+  --green:    #22c55e;
+  --red:      #ef4444;
+  --mono:     'Geist Mono', monospace;
+  --serif:    'Instrument Serif', serif;
+}
+
+/* ── Reset ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--mono); overflow: hidden; }
+
+/* ── Shell ─────────────────────────────────────────────── */
+.shell {
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  grid-template-columns: 260px 1fr 340px;
+  height: 100vh;
+}
+
+/* ── Topbar ─────────────────────────────────────────────── */
+.topbar {
+  grid-column: 1 / -1;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 16px;
+}
+.topbar-logo {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.topbar-logo .dot {
+  width: 8px; height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+}
+.topbar-repo {
+  font-size: 0.68rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  background: var(--raised);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.topbar-repo:hover { border-color: var(--accent); color: var(--accent2); }
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+.status-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
+
+/* ── Left sidebar ───────────────────────────────────────── */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.sidebar-head {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sidebar-title {
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.reload-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.75rem;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: color 0.15s;
+}
+.reload-btn:hover { color: var(--accent2); }
+
+.tpl-list { list-style: none; overflow-y: auto; flex: 1; padding: 6px 8px; }
+.tpl-item {
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 2px;
+  border: 1px solid transparent;
+}
+.tpl-item:hover { background: var(--raised); }
+.tpl-item.active {
+  background: rgba(59,130,246,0.1);
+  border-color: rgba(59,130,246,0.3);
+}
+.tpl-item-name {
+  font-size: 0.8rem;
+  color: var(--text);
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+.tpl-item.active .tpl-item-name { color: var(--accent2); }
+.tpl-item-desc {
+  font-size: 0.65rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Loading / error states */
+.sidebar-state {
+  padding: 20px 16px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.6;
+}
+.sidebar-state.error { color: #f87171; }
+.spin { display: inline-block; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Center ─────────────────────────────────────────────── */
+.center {
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+}
+
+/* Tabs */
+.tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  padding: 0 4px;
+}
+.tab {
+  padding: 0 18px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+.tab:hover { color: var(--text); }
+.tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+
+.tab-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
+.tab-panel.active { display: flex; }
+
+/* Template source viewer */
+.source-wrap {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+}
+#tplSource {
+  width: 100%;
+  min-height: 100%;
+  background: transparent;
+  color: #94a3b8;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  padding: 24px;
+  border: none;
+  resize: none;
+  outline: none;
+  tab-size: 2;
+}
+.source-hint {
+  position: sticky;
+  bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 8px 20px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.source-hint code {
+  color: var(--accent2);
+  background: rgba(59,130,246,0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+/* Preview iframe */
+#previewFrame {
+  flex: 1;
+  border: none;
+  background: #fff;
+  width: 100%;
+}
+
+/* Empty state */
+.empty-center {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--muted);
+  padding: 40px;
+  text-align: center;
+}
+.empty-center .big-letter {
+  font-family: var(--serif);
+  font-size: 5rem;
+  font-style: italic;
+  opacity: 0.08;
+  line-height: 1;
+  color: var(--text);
+}
+.empty-center p { font-size: 0.75rem; line-height: 1.7; }
+.empty-center .arrow {
+  font-size: 0.7rem;
+  color: var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+/* ── Right: Fields ──────────────────────────────────────── */
+.fields-panel {
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.fields-head {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.fields-scroll { flex: 1; overflow-y: auto; padding: 14px; }
+.field-group { margin-bottom: 20px; }
+.field-label {
+  display: block;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.field-label span {
+  color: var(--accent);
+  font-size: 0.58rem;
+  margin-left: 4px;
+}
+
+/* Quill overrides for dark theme */
+.quill-wrap .ql-toolbar {
+  background: var(--raised) !important;
+  border: 1px solid var(--border2) !important;
+  border-bottom: 1px solid var(--border) !important;
+  border-radius: 5px 5px 0 0;
+}
+.quill-wrap .ql-toolbar .ql-stroke { stroke: var(--muted); }
+.quill-wrap .ql-toolbar .ql-fill { fill: var(--muted); }
+.quill-wrap .ql-toolbar button:hover .ql-stroke { stroke: var(--accent2); }
+.quill-wrap .ql-toolbar button:hover .ql-fill { fill: var(--accent2); }
+.quill-wrap .ql-toolbar .ql-picker-label { color: var(--muted); }
+.quill-wrap .ql-container {
+  background: var(--bg) !important;
+  border: 1px solid var(--border2) !important;
+  border-top: none !important;
+  border-radius: 0 0 5px 5px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  min-height: 80px;
+}
+.quill-wrap .ql-editor { min-height: 70px; color: var(--text); }
+.quill-wrap .ql-editor.ql-blank::before { color: var(--muted); font-style: normal; }
+
+/* Image upload field */
+.img-drop {
+  border: 1.5px dashed var(--border2);
+  border-radius: 6px;
+  padding: 14px 12px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--bg);
+  transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+.img-drop:hover { border-color: var(--accent); background: rgba(59,130,246,0.04); }
+.img-drop input[type=file] {
+  position: absolute; inset: 0; opacity: 0;
+  cursor: pointer; width: 100%; height: 100%;
+}
+.img-drop-label { font-size: 0.68rem; color: var(--muted); pointer-events: none; line-height: 1.5; }
+.img-drop-label strong { color: var(--accent2); }
+.img-thumb {
+  max-width: 100%; max-height: 72px;
+  margin-top: 8px; border-radius: 4px;
+  display: none; border: 1px solid var(--border2);
+}
+
+/* Export footer */
+.export-bar {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--raised);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--muted);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
+.btn-full { width: 100%; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Config modal ────────────────────────────────────────── */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-top: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 28px;
+  width: 520px;
+  max-width: 95vw;
+  position: relative;
+}
+.modal h2 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+}
+.modal .modal-sub { font-size: 0.72rem; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
+.form-row { margin-bottom: 16px; }
+.form-row label { display: block; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.form-row input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  padding: 9px 12px;
+  border-radius: 5px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-row input:focus { border-color: var(--accent); }
+.form-row .hint { font-size: 0.63rem; color: var(--muted); margin-top: 5px; line-height: 1.5; }
+.form-row .hint code { color: var(--accent2); }
+.modal-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: var(--muted);
+  font-size: 1rem; cursor: pointer; line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+/* ── Export modal ────────────────────────────────────────── */
+#exportOut {
+  width: 100%;
+  min-height: 220px;
+  max-height: 50vh;
+  background: var(--bg);
+  color: #94a3b8;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.6;
+  padding: 16px;
+  border: 1px solid var(--border2);
+  border-radius: 5px;
+  resize: vertical;
+  outline: none;
+}
+
+/* ── Toast ───────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px);
+  background: var(--raised);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transition: all 0.22s;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 999;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ══ TOP BAR ══════════════════════════════════════════ -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="dot"></div>
+      Email Builder
+    </div>
+    <div class="topbar-repo" onclick="openConfig()" title="Configure GitHub repo source">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+      <span id="repoLabel">Configure repo →</span>
+    </div>
+    <div class="topbar-right">
+      <div class="status-dot" id="statusDot" style="background:var(--muted);box-shadow:none;"></div>
+      <span class="status-label" id="statusLabel">not configured</span>
+    </div>
+  </header>
+
+  <!-- ══ LEFT SIDEBAR ═════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-head">
+      <span class="sidebar-title">Templates</span>
+      <button class="reload-btn" onclick="loadTemplates()" title="Reload templates">↻</button>
+    </div>
+    <ul class="tpl-list" id="tplList">
+      <li class="sidebar-state">Configure your repo<br>to load templates.</li>
+    </ul>
+  </aside>
+
+  <!-- ══ CENTER ════════════════════════════════════════════ -->
+  <main class="center" id="centerMain">
+    <div class="empty-center" id="emptyCenter">
+      <div class="big-letter">✉</div>
+      <div class="arrow">← Select a template</div>
+      <p>Choose a template from the sidebar<br>then fill in the fields on the right.</p>
+    </div>
+
+    <div id="editorWrap" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+      <div class="tab-bar">
+        <div class="tab active" data-tab="preview" onclick="switchTab('preview')">Preview</div>
+        <div class="tab" data-tab="source" onclick="switchTab('source')">Template Source</div>
+      </div>
+
+      <!-- Preview -->
+      <div class="tab-panel active" id="tab-preview">
+        <iframe id="previewFrame" src="about:blank"></iframe>
+      </div>
+
+      <!-- Source -->
+      <div class="tab-panel" id="tab-source">
+        <div class="source-wrap">
+          <textarea id="tplSource" readonly spellcheck="false"></textarea>
+        </div>
+        <div class="source-hint">
+          Read-only view of the raw template.
+          Use <code>{{field}}</code> for text · <code>{{image:field}}</code> for images.
+          Edit files in your GitHub repo to make changes.
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ══ RIGHT: FIELDS ═════════════════════════════════════ -->
+  <aside class="fields-panel">
+    <div class="fields-head">Fill Fields</div>
+    <div class="fields-scroll" id="fieldsScroll">
+      <p class="sidebar-state">Select a template<br>to see its fields.</p>
+    </div>
+    <div class="export-bar">
+      <button class="btn btn-primary btn-full" onclick="renderPreview()">▶ &nbsp;Render Preview</button>
+      <button class="btn btn-ghost btn-full" onclick="showExport()">↓ &nbsp;Export HTML</button>
+    </div>
+  </aside>
+
+</div>
+
+<!-- ══ CONFIG MODAL ═══════════════════════════════════════ -->
+<div class="overlay" id="configModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('configModal')">✕</button>
+    <h2>Repository Config</h2>
+    <p class="modal-sub">Point the builder at your GitHub repo. Templates are fetched via <code style="color:var(--accent2)">raw.githubusercontent.com</code>.</p>
+
+    <div class="form-row">
+      <label>GitHub Username</label>
+      <input type="text" id="cfgUser" placeholder="e.g. acme-corp">
+    </div>
+    <div class="form-row">
+      <label>Repository Name</label>
+      <input type="text" id="cfgRepo" placeholder="e.g. email-templates">
+    </div>
+    <div class="form-row">
+      <label>Branch</label>
+      <input type="text" id="cfgBranch" placeholder="main" value="main">
+      <div class="hint">The branch your templates live on. Usually <code>main</code> or <code>master</code>.</div>
+    </div>
+    <div class="form-row">
+      <label>Path to templates.json</label>
+      <input type="text" id="cfgIndex" placeholder="templates.json" value="templates.json">
+      <div class="hint">Relative path from repo root. This file lists your templates.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('configModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveConfig()">Save &amp; Load</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EXPORT MODAL ═══════════════════════════════════════ -->
+<div class="overlay" id="exportModal">
+  <div class="modal" style="width:680px;">
+    <button class="modal-close" onclick="closeModal('exportModal')">✕</button>
+    <h2>Exported HTML</h2>
+    <p class="modal-sub">Copy this HTML and paste it into your email sending platform, or download it.</p>
+    <textarea id="exportOut" readonly></textarea>
+    <div class="modal-actions" style="margin-top:14px;">
+      <button class="btn btn-ghost" onclick="copyExport()">Copy to Clipboard</button>
+      <button class="btn btn-primary" onclick="downloadExport()">Download .html</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// Config — persisted to localStorage
+// ═══════════════════════════════════════════════════════════
+const CFG_KEY = 'emailbuilder_config';
+
+function getConfig() {
+  try { return JSON.parse(localStorage.getItem(CFG_KEY)) || {}; } catch { return {}; }
+}
+function saveConfig() {
+  const cfg = {
+    user:   document.getElementById('cfgUser').value.trim(),
+    repo:   document.getElementById('cfgRepo').value.trim(),
+    branch: document.getElementById('cfgBranch').value.trim() || 'main',
+    index:  document.getElementById('cfgIndex').value.trim() || 'templates.json',
+  };
+  if (!cfg.user || !cfg.repo) { toast('Username and repo name are required.'); return; }
+  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  closeModal('configModal');
+  updateRepoLabel(cfg);
+  loadTemplates();
+}
+
+function rawURL(cfg, path) {
+  return `https://raw.githubusercontent.com/${cfg.user}/${cfg.repo}/${cfg.branch}/${path}`;
+}
+
+function updateRepoLabel(cfg) {
+  const label = document.getElementById('repoLabel');
+  const dot   = document.getElementById('statusDot');
+  const sl    = document.getElementById('statusLabel');
+  if (cfg.user && cfg.repo) {
+    label.textContent = `${cfg.user}/${cfg.repo}`;
+    dot.style.background   = 'var(--accent)';
+    dot.style.boxShadow    = '0 0 6px var(--accent)';
+    sl.textContent = cfg.branch;
+  } else {
+    label.textContent = 'Configure repo →';
+    dot.style.background = 'var(--muted)';
+    dot.style.boxShadow  = 'none';
+    sl.textContent = 'not configured';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// State
+// ═══════════════════════════════════════════════════════════
+let templateIndex = [];   // [{id, name, description, file}]
+let activeTemplate = null; // {id, name, html}
+let quillMap = {};         // fieldKey → Quill instance
+let imageMap = {};         // fieldKey → base64 data URL
+
+// ═══════════════════════════════════════════════════════════
+// Boot
+// ═══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const cfg = getConfig();
+  if (cfg.user && cfg.repo) {
+    populateConfigForm(cfg);
+    updateRepoLabel(cfg);
+    loadTemplates();
+  } else {
+    openModal('configModal');
+  }
+});
+
+function populateConfigForm(cfg) {
+  document.getElementById('cfgUser').value   = cfg.user   || '';
+  document.getElementById('cfgRepo').value   = cfg.repo   || '';
+  document.getElementById('cfgBranch').value = cfg.branch || 'main';
+  document.getElementById('cfgIndex').value  = cfg.index  || 'templates.json';
+}
+
+function openConfig() {
+  populateConfigForm(getConfig());
+  openModal('configModal');
+}
+
+// ═══════════════════════════════════════════════════════════
+// Load template index from GitHub
+// ═══════════════════════════════════════════════════════════
+async function loadTemplates() {
+  const cfg = getConfig();
+  if (!cfg.user || !cfg.repo) { openModal('configModal'); return; }
+
+  const list = document.getElementById('tplList');
+  list.innerHTML = `<li class="sidebar-state"><span class="spin">◌</span> Loading…</li>`;
+
+  try {
+    const url = rawURL(cfg, cfg.index || 'templates.json');
+    const res = await fetch(url + '?_=' + Date.now()); // bust cache
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    templateIndex = await res.json();
+    renderSidebar();
+    toast(`Loaded ${templateIndex.length} template${templateIndex.length !== 1 ? 's' : ''}`);
+  } catch(e) {
+    list.innerHTML = `<li class="sidebar-state error">
+      Failed to load templates.json<br>
+      <span style="font-size:0.6rem;opacity:0.7">${e.message}</span><br><br>
+      <span style="font-size:0.65rem;">Check your repo config and make sure<br>templates.json exists on that branch.</span>
+    </li>`;
+  }
+}
+
+function renderSidebar() {
+  const list = document.getElementById('tplList');
+  if (!templateIndex.length) {
+    list.innerHTML = `<li class="sidebar-state">No templates found.<br>Add entries to templates.json.</li>`;
+    return;
+  }
+  list.innerHTML = templateIndex.map(t => `
+    <li class="tpl-item ${activeTemplate?.id === t.id ? 'active' : ''}"
+        onclick="selectTemplate('${esc(t.id)}')">
+      <div class="tpl-item-name">${esc(t.name)}</div>
+      ${t.description ? `<div class="tpl-item-desc">${esc(t.description)}</div>` : ''}
+    </li>
+  `).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// Select & fetch a template
+// ═══════════════════════════════════════════════════════════
+async function selectTemplate(id) {
+  const meta = templateIndex.find(t => t.id === id);
+  if (!meta) return;
+
+  const cfg = getConfig();
+  const list = document.getElementById('tplList');
+
+  // Optimistic highlight
+  activeTemplate = null;
+  renderSidebar();
+  // Re-find and mark loading
+  [...list.querySelectorAll('.tpl-item')].forEach(el => {
+    if (el.querySelector('.tpl-item-name')?.textContent === meta.name)
+      el.style.opacity = '0.5';
+  });
+
+  try {
+    const url = rawURL(cfg, meta.file);
+    const res = await fetch(url + '?_=' + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${meta.file}`);
+    const html = await res.text();
+
+    activeTemplate = { id, name: meta.name, file: meta.file, html };
+    renderSidebar();
+    showEditor(html);
+    buildFields(html);
+    toast(`"${meta.name}" loaded`);
+  } catch(e) {
+    renderSidebar();
+    toast(`Error: ${e.message}`);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// Editor
+// ═══════════════════════════════════════════════════════════
+function showEditor(html) {
+  document.getElementById('emptyCenter').style.display = 'none';
+  const wrap = document.getElementById('editorWrap');
+  wrap.style.display = 'flex';
+  document.getElementById('tplSource').value = html;
+  // Clear preview
+  document.getElementById('previewFrame').srcdoc = '';
+  switchTab('preview');
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
+// ═══════════════════════════════════════════════════════════
+// Field detection & building
+// ═══════════════════════════════════════════════════════════
+function detectFields(html) {
+  const textRe  = /\{\{([^}:][^}]*)\}\}/g;
+  const imageRe = /\{\{image:([^}]+)\}\}/g;
+  const text   = [...new Set([...html.matchAll(textRe)].map(m => m[1]))];
+  const images = [...new Set([...html.matchAll(imageRe)].map(m => m[1]))];
+  return { text, images };
+}
+
+function buildFields(html) {
+  const { text, images } = detectFields(html);
+  quillMap = {};
+  imageMap = {};
+
+  const scroll = document.getElementById('fieldsScroll');
+
+  if (!text.length && !images.length) {
+    scroll.innerHTML = '<p class="sidebar-state">No <code style="color:var(--accent2)">{{placeholders}}</code><br>found in this template.</p>';
+    return;
+  }
+
+  let out = '';
+
+  text.forEach(key => {
+    const id = safeId(key);
+    const label = key.replace(/_/g, ' ');
+    out += `
+      <div class="field-group">
+        <label class="field-label">${esc(label)} <span>rich text</span></label>
+        <div class="quill-wrap">
+          <div id="q-${id}"></div>
+        </div>
+      </div>`;
+  });
+
+  images.forEach(key => {
+    const id = safeId(key);
+    const label = key.replace(/_/g, ' ');
+    out += `
+      <div class="field-group">
+        <label class="field-label">${esc(label)} <span>image</span></label>
+        <div class="img-drop">
+          <input type="file" accept="image/*" onchange="handleImg(event,'${esc(key)}')">
+          <div class="img-drop-label"><strong>Click to upload</strong> or drag image here</div>
+          <img class="img-thumb" id="thumb-${id}" alt="">
+        </div>
+      </div>`;
+  });
+
+  scroll.innerHTML = out;
+
+  // Mount Quill instances
+  text.forEach(key => {
+    const id = safeId(key);
+    const q = new Quill(`#q-${id}`, {
+      theme: 'snow',
+      placeholder: key.replace(/_/g, ' ') + '…',
+      modules: {
+        toolbar: [
+          ['bold', 'italic', 'underline'],
+          [{ color: [] }],
+          [{ align: [] }],
+          ['link'],
+          ['clean']
+        ]
+      }
+    });
+    quillMap[key] = q;
+  });
+}
+
+function handleImg(event, key) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageMap[key] = e.target.result;
+    const thumb = document.getElementById('thumb-' + safeId(key));
+    if (thumb) { thumb.src = e.target.result; thumb.style.display = 'block'; }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Render
+// ═══════════════════════════════════════════════════════════
+function buildOutput() {
+  if (!activeTemplate) return null;
+  let html = activeTemplate.html;
+
+  Object.entries(quillMap).forEach(([key, q]) => {
+    html = html.replaceAll(`{{${key}}}`, q.root.innerHTML);
+  });
+  Object.entries(imageMap).forEach(([key, dataUrl]) => {
+    html = html.replaceAll(`{{image:${key}}}`, dataUrl);
+  });
+
+  // Clear unfilled placeholders
+  html = html.replace(/\{\{image:[^}]+\}\}/g, '');
+  html = html.replace(/\{\{[^}]+\}\}/g, '');
+  return html;
+}
+
+function renderPreview() {
+  const out = buildOutput();
+  if (!out) { toast('Select a template first.'); return; }
+  document.getElementById('previewFrame').srcdoc = out;
+  switchTab('preview');
+  toast('Preview updated');
+}
+
+function showExport() {
+  const out = buildOutput();
+  if (!out) { toast('Select a template first.'); return; }
+  document.getElementById('exportOut').value = out;
+  openModal('exportModal');
+}
+
+function copyExport() {
+  const val = document.getElementById('exportOut').value;
+  navigator.clipboard.writeText(val).then(() => toast('Copied!'));
+}
+
+function downloadExport() {
+  const val  = document.getElementById('exportOut').value;
+  const name = (activeTemplate?.name || 'email').replace(/\s+/g, '_') + '_export.html';
+  const a = document.createElement('a');
+  a.href     = 'data:text/html;charset=utf-8,' + encodeURIComponent(val);
+  a.download = name;
+  a.click();
+  toast('Downloaded!');
+}
+
+// ═══════════════════════════════════════════════════════════
+// Modals
+// ═══════════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════════════
+// Toast
+// ═══════════════════════════════════════════════════════════
+let _tt;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_tt);
+  _tt = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Utils
+// ═══════════════════════════════════════════════════════════
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+}
+function safeId(key) {
+  return key.replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+</script>
+</body>
+</html>

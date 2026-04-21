@@ -1,0 +1,14 @@
+[
+  {
+    "id": "welcome",
+    "name": "Welcome Email",
+    "description": "Onboarding email for new users",
+    "file": "templates/welcome.html"
+  },
+  {
+    "id": "newsletter",
+    "name": "Monthly Newsletter",
+    "description": "General newsletter with header image and body",
+    "file": "templates/newsletter.html"
+  }
+]

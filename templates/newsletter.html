@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newsletter</title>
+</head>
+<body style="margin:0;padding:0;background:#f0ede8;font-family:Georgia,serif;">
+  <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td align="center" style="padding:40px 0;">
+        <table width="620" cellpadding="0" cellspacing="0" style="background:#fff;">
+
+          <!-- Header banner -->
+          <tr>
+            <td>
+              <img src="{{image:banner_image}}" alt="Banner" width="620" style="display:block;width:100%;">
+            </td>
+          </tr>
+
+          <!-- Issue label -->
+          <tr>
+            <td style="background:#2b2d42;padding:12px 48px;text-align:center;">
+              <span style="font-family:Arial,sans-serif;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#8ecae6;">{{issue_label}}</span>
+            </td>
+          </tr>
+
+          <!-- Main content -->
+          <tr>
+            <td style="padding:48px 48px 32px;">
+              <h1 style="margin:0 0 20px;font-size:32px;color:#2b2d42;line-height:1.25;">{{headline}}</h1>
+              <div style="font-size:15px;color:#444;line-height:1.9;">{{main_content}}</div>
+            </td>
+          </tr>
+
+          <!-- Feature image -->
+          <tr>
+            <td style="padding:0 48px 32px;">
+              <img src="{{image:feature_image}}" alt="" width="524" style="display:block;width:100%;border-radius:4px;">
+            </td>
+          </tr>
+
+          <!-- Secondary content -->
+          <tr>
+            <td style="padding:0 48px 40px;">
+              <div style="font-size:15px;color:#444;line-height:1.9;">{{secondary_content}}</div>
+            </td>
+          </tr>
+
+          <!-- Divider -->
+          <tr>
+            <td style="padding:0 48px;">
+              <hr style="border:none;border-top:1px solid #eee;margin:0;">
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:24px 48px;text-align:center;">
+              <p style="margin:0;font-size:11px;color:#bbb;font-family:Arial,sans-serif;letter-spacing:0.04em;line-height:1.7;">
+                {{footer_text}}
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
