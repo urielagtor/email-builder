@@ -1,14 +1,14 @@
 [
   {
-    "id": "welcome",
-    "name": "Welcome Email",
-    "description": "Onboarding email for new users",
-    "file": "templates/welcome.html"
+    "id": "give-a-hoot-day",
+    "name": "Give a Hoot Day",
+    "description": "Annual day-of-giving fundraiser email",
+    "file": "templates/give-a-hoot-day.html"
   },
   {
-    "id": "newsletter",
-    "name": "Monthly Newsletter",
-    "description": "General newsletter with header image and body",
-    "file": "templates/newsletter.html"
+    "id": "general-announcement",
+    "name": "General Announcement",
+    "description": "All-purpose club announcement",
+    "file": "templates/general-announcement.html"
   }
 ]

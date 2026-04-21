@@ -1,6 +1,6 @@
-# Email Template Builder — GitHub Pages
+# Email Builder — GitHub Pages
 
-A static, zero-backend email builder hosted on GitHub Pages. Templates live as `.html` files in your repo and are fetched at runtime.
+Zero-login, zero-setup for your team. You configure it once in `config.js`, push it, and everyone on your team just opens the URL.
 
 ---
 
@@ -8,129 +8,97 @@ A static, zero-backend email builder hosted on GitHub Pages. Templates live as `
 
 ```
 your-repo/
-├── index.html            ← The builder app (this file)
-├── templates.json        ← Index of all available templates
+├── index.html              ← The app (never edit this)
+├── config.js               ← ✏️  Edit this once with your repo details
+├── templates.json          ← ✏️  Add/remove templates here
 └── templates/
-    ├── welcome.html
-    ├── newsletter.html
-    └── any-other.html
+    ├── give-a-hoot-day.html
+    ├── general-announcement.html
+    └── ...your templates...
 ```
 
 ---
 
-## Setup
+## Setup (one-time, done by you)
 
-### 1. Create your GitHub repo
+### 1. Edit `config.js`
 
-Create a new public GitHub repo (e.g. `email-templates`).
+Open `config.js` and fill in your details:
 
-### 2. Push these files
+```js
+const EMAIL_BUILDER_CONFIG = {
+  githubUser:     "your-username",   // GitHub username or org
+  githubRepo:     "email-templates", // Repo name
+  githubBranch:   "main",            // Branch (usually "main")
+  templatesIndex: "templates.json",  // Leave as-is
+  appName:        "Email Builder",
+  orgName:        "Christian Fellowship Club",
+};
+```
 
-Push `index.html`, `templates.json`, and your `templates/` folder to the `main` branch.
+### 2. Push to GitHub
+
+Push all files to your repo.
 
 ### 3. Enable GitHub Pages
 
 - Go to **Settings → Pages**
-- Set source to: **Deploy from a branch → main → / (root)**
-- Save. Your site will be live at `https://yourusername.github.io/your-repo/`
+- Source: **Deploy from branch → main → / (root)**
+- Save. Live at `https://yourusername.github.io/your-repo/`
 
-### 4. Configure the app
+### 4. Share the URL
 
-When you first open the site, a config modal appears. Enter:
-- **GitHub Username** — your GitHub username or org
-- **Repository Name** — the repo name
-- **Branch** — `main` (or whatever branch you use)
-- **Path to templates.json** — `templates.json` (default)
+Send the URL to your team. No login. No setup. Done.
 
-Config is saved to `localStorage` — your team members each configure it once.
+---
+
+## Your team's workflow
+
+1. Open the GitHub Pages URL
+2. Click a template in the left sidebar
+3. Fill in the fields on the right (rich text editors + image uploads)
+4. Click **Render Preview** to see the finished email
+5. Click **Export HTML** → Copy or Download
+6. Paste into your email platform (Mailchimp, Constant Contact, etc.)
 
 ---
 
 ## Managing templates
 
-### templates.json
+### Adding a new template
 
-This is the index file the app fetches. Add an entry for each template:
+1. Create your `.html` file in `templates/` with `{{placeholders}}`
+2. Add an entry to `templates.json`:
 
 ```json
-[
-  {
-    "id": "welcome",
-    "name": "Welcome Email",
-    "description": "Sent to new users on signup",
-    "file": "templates/welcome.html"
-  },
-  {
-    "id": "newsletter",
-    "name": "Monthly Newsletter",
-    "description": "General newsletter with header image",
-    "file": "templates/newsletter.html"
-  }
-]
+{
+  "id": "my-new-template",
+  "name": "My New Template",
+  "description": "Short description shown in sidebar",
+  "file": "templates/my-new-template.html"
+}
 ```
 
-**Fields:**
-| Field | Required | Description |
-|---|---|---|
-| `id` | ✅ | Unique identifier (no spaces) |
-| `name` | ✅ | Display name shown in sidebar |
-| `description` | ❌ | Short description shown in sidebar |
-| `file` | ✅ | Path to the `.html` file (relative to repo root) |
+3. Push. It appears immediately for everyone.
 
-To add a template: add the `.html` file + add an entry to `templates.json` + push.
-To remove a template: remove the entry from `templates.json` (file can stay or be deleted).
+### Placeholder syntax
 
----
-
-## Placeholder syntax
-
-In your template `.html` files, use these placeholders:
-
-| Syntax | What it creates |
+| In your `.html` file | Creates in the builder |
 |---|---|
-| `{{field_name}}` | A rich text editor (bold, italic, color, links) |
-| `{{image:field_name}}` | An image upload field |
+| `{{field_name}}` | Rich text editor (bold, italic, color, links) |
+| `{{image:field_name}}` | Image upload (embedded as base64) |
 
-Field names become labels in the UI automatically. Use `_` for spaces: `{{first_name}}` → "first name".
+Field names auto-become labels. Underscores become spaces: `{{first_name}}` → "first name".
 
-### Example template
+### Removing a template
 
-```html
-<!DOCTYPE html>
-<html>
-<body style="font-family:Georgia,serif;background:#f4f4f4;margin:0;padding:40px 0;">
-  <table width="600" align="center" style="background:#fff;padding:40px;">
-    <tr>
-      <td>
-        <img src="{{image:header_image}}" width="600" style="display:block;width:100%;">
-        <h1>Hello, {{first_name}}!</h1>
-        <div>{{body_content}}</div>
-        <a href="{{cta_url}}" style="background:#e63946;color:#fff;padding:14px 32px;text-decoration:none;display:inline-block;margin-top:24px;">
-          {{cta_label}}
-        </a>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>
-```
-
----
-
-## How team members use it
-
-1. Open the GitHub Pages URL
-2. First visit: enter the repo config (saved forever in their browser)
-3. Pick a template from the left sidebar
-4. Fill in text fields (rich text editor) and upload images
-5. Click **Render Preview** to see the result
-6. Click **Export HTML** → copy or download the finished email
+Remove its entry from `templates.json`. The `.html` file can stay or be deleted.
 
 ---
 
 ## Notes
 
-- Images are embedded as **base64 data URLs** in the exported HTML — no external hosting needed, works in all email clients
-- The repo config is stored in `localStorage` per browser — each team member sets it up once
-- Templates are fetched fresh every time (cache-busted) — push changes to the repo and they appear immediately on next load
-- No build step, no npm, no dependencies to install
+- **Images** are embedded as base64 data URLs in the exported HTML — no hosting needed, works across all email clients
+- **No accounts** — your team just opens the URL, period
+- **Always fresh** — templates are fetched with cache-busting, so changes you push appear immediately
+- **Read-only source view** — team members can see the raw HTML but can't accidentally break templates; edits happen in GitHub

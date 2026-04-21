@@ -8,87 +8,89 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/quill@2/dist/quill.js"></script>
+<!-- Load your repo config — edit config.js, not this file -->
+<script src="config.js"></script>
 
 <style>
-/* ── Variables ─────────────────────────────────────────── */
 :root {
-  --bg:       #0d0f12;
-  --surface:  #13161b;
-  --raised:   #1a1e25;
-  --border:   #252a33;
-  --border2:  #2f3542;
-  --text:     #e2e8f0;
-  --muted:    #64748b;
-  --accent:   #3b82f6;
-  --accent2:  #60a5fa;
-  --green:    #22c55e;
-  --red:      #ef4444;
-  --mono:     'Geist Mono', monospace;
-  --serif:    'Instrument Serif', serif;
+  --navy:   #0D2750;
+  --gold:   #F5C42C;
+  --sky:    #6aaee0;
+  --bg:     #f0f2f7;
+  --white:  #ffffff;
+  --slate:  #334155;
+  --muted:  #64748b;
+  --border: #e2e8f0;
+  --raise:  #f8fafc;
+  --red:    #ef4444;
+  --mono:   'Geist Mono', monospace;
+  --serif:  'Instrument Serif', serif;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
 }
 
-/* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--mono); overflow: hidden; }
+html, body { height: 100%; background: var(--bg); color: var(--navy); font-family: var(--mono); }
 
-/* ── Shell ─────────────────────────────────────────────── */
+/* ── Layout ── */
 .shell {
   display: grid;
-  grid-template-rows: 52px 1fr;
-  grid-template-columns: 260px 1fr 340px;
+  grid-template-rows: 58px 1fr;
+  grid-template-columns: 270px 1fr 360px;
   height: 100vh;
+  overflow: hidden;
 }
 
-/* ── Topbar ─────────────────────────────────────────────── */
+/* ── Topbar ── */
 .topbar {
   grid-column: 1 / -1;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: var(--navy);
   display: flex;
   align-items: center;
   padding: 0 20px;
-  gap: 16px;
+  gap: 12px;
+  border-bottom: 4px solid var(--gold);
 }
-.topbar-logo {
+.topbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.topbar-brand .icon {
+  width: 30px; height: 30px;
+  background: var(--gold);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+}
+.topbar-brand h1 {
   font-family: var(--serif);
-  font-size: 1.15rem;
-  color: var(--text);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  font-weight: 400;
+  font-size: 1.1rem;
+  color: #fff;
+  line-height: 1;
 }
-.topbar-logo .dot {
-  width: 8px; height: 8px;
-  background: var(--accent);
-  border-radius: 50%;
-  box-shadow: 0 0 8px var(--accent);
+.topbar-brand h1 span { color: var(--gold); font-style: italic; }
+.topbar-org {
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-left: 2px;
 }
-.topbar-repo {
-  font-size: 0.68rem;
-  color: var(--muted);
-  letter-spacing: 0.04em;
-  background: var(--raised);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 4px 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: border-color 0.15s;
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.topbar-badge {
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border: 1px solid rgba(245,196,44,0.3);
+  padding: 3px 10px;
+  border-radius: 99px;
 }
-.topbar-repo:hover { border-color: var(--accent); color: var(--accent2); }
-.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
-.status-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green);
-}
-.status-label { font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
 
-/* ── Left sidebar ───────────────────────────────────────── */
+/* ── Sidebar (left) ── */
 .sidebar {
-  background: var(--surface);
+  background: var(--white);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -97,696 +99,496 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .sidebar-head {
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
 }
-.sidebar-title {
-  font-size: 0.6rem;
+.sidebar-label {
+  font-size: 0.58rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
-}
-.reload-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--muted);
-  font-size: 0.75rem;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: color 0.15s;
-}
-.reload-btn:hover { color: var(--accent2); }
-
-.tpl-list { list-style: none; overflow-y: auto; flex: 1; padding: 6px 8px; }
-.tpl-item {
-  border-radius: 6px;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: background 0.15s;
-  margin-bottom: 2px;
-  border: 1px solid transparent;
-}
-.tpl-item:hover { background: var(--raised); }
-.tpl-item.active {
-  background: rgba(59,130,246,0.1);
-  border-color: rgba(59,130,246,0.3);
-}
-.tpl-item-name {
-  font-size: 0.8rem;
-  color: var(--text);
-  margin-bottom: 2px;
   font-weight: 500;
 }
-.tpl-item.active .tpl-item-name { color: var(--accent2); }
-.tpl-item-desc {
+.reload-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--muted); font-size: 0.8rem; padding: 2px 5px;
+  border-radius: 4px; transition: color 0.15s, background 0.15s;
+  font-family: var(--mono);
+}
+.reload-btn:hover { color: var(--navy); background: var(--bg); }
+
+.tpl-list { list-style: none; overflow-y: auto; flex: 1; padding: 8px; }
+.tpl-item {
+  padding: 11px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+  border: 1px solid transparent;
+  margin-bottom: 3px;
+}
+.tpl-item:hover { background: var(--bg); }
+.tpl-item.active {
+  background: rgba(13,39,80,0.06);
+  border-color: rgba(13,39,80,0.15);
+}
+.tpl-name {
+  font-size: 0.8rem;
+  color: var(--navy);
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.tpl-item.active .tpl-name { color: var(--navy); font-weight: 600; }
+.tpl-desc {
   font-size: 0.65rem;
   color: var(--muted);
   line-height: 1.4;
 }
-
-/* Loading / error states */
-.sidebar-state {
+.sidebar-msg {
   padding: 20px 16px;
   font-size: 0.72rem;
   color: var(--muted);
   text-align: center;
-  line-height: 1.6;
+  line-height: 1.7;
 }
-.sidebar-state.error { color: #f87171; }
-.spin { display: inline-block; animation: spin 1s linear infinite; }
+.sidebar-msg.err { color: var(--red); }
+.spin { display: inline-block; animation: spin 0.9s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ── Center ─────────────────────────────────────────────── */
+/* ── Center ── */
 .center {
   background: var(--bg);
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
   overflow: hidden;
   border-right: 1px solid var(--border);
 }
 
 /* Tabs */
 .tab-bar {
-  display: flex;
+  background: var(--white);
   border-bottom: 1px solid var(--border);
-  background: var(--surface);
-  padding: 0 4px;
+  display: flex;
+  padding: 0 6px;
 }
 .tab {
-  padding: 0 18px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: color 0.15s, border-color 0.15s;
+  padding: 0 18px; height: 42px;
+  display: flex; align-items: center;
+  font-size: 0.65rem; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color 0.12s, border-color 0.12s;
   user-select: none;
 }
-.tab:hover { color: var(--text); }
-.tab.active { color: var(--accent2); border-bottom-color: var(--accent); }
+.tab:hover { color: var(--navy); }
+.tab.active { color: var(--navy); border-bottom-color: var(--navy); }
 
 .tab-panel { display: none; flex: 1; flex-direction: column; overflow: hidden; }
 .tab-panel.active { display: flex; }
 
-/* Template source viewer */
-.source-wrap {
-  flex: 1;
-  overflow: auto;
-  position: relative;
+/* Empty state */
+.empty-state {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px; padding: 48px; text-align: center;
 }
+.empty-envelope {
+  font-size: 4rem;
+  opacity: 0.12;
+  animation: bob 3s ease-in-out infinite;
+}
+@keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+.empty-arrow {
+  font-size: 0.72rem; color: var(--navy);
+  opacity: 0.5;
+  animation: fadepulse 2s ease-in-out infinite;
+}
+@keyframes fadepulse { 0%,100%{opacity:0.3} 50%{opacity:0.7} }
+.empty-hint { font-size: 0.75rem; color: var(--muted); line-height: 1.7; }
+
+/* Source viewer */
+.source-wrap { flex: 1; overflow: auto; background: #1e293b; }
 #tplSource {
-  width: 100%;
-  min-height: 100%;
+  width: 100%; min-height: 100%;
   background: transparent;
   color: #94a3b8;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  line-height: 1.7;
-  padding: 24px;
-  border: none;
-  resize: none;
-  outline: none;
-  tab-size: 2;
+  font-family: var(--mono); font-size: 0.73rem; line-height: 1.7;
+  padding: 20px; border: none; resize: none; outline: none; tab-size: 2;
 }
-.source-hint {
-  position: sticky;
-  bottom: 0;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding: 8px 20px;
-  font-size: 0.65rem;
-  color: var(--muted);
-  letter-spacing: 0.04em;
+.source-footer {
+  background: var(--white); border-top: 1px solid var(--border);
+  padding: 8px 18px;
+  font-size: 0.62rem; color: var(--muted); letter-spacing: 0.04em;
+  display: flex; align-items: center; gap: 10px;
 }
-.source-hint code {
-  color: var(--accent2);
-  background: rgba(59,130,246,0.1);
-  padding: 1px 5px;
-  border-radius: 3px;
+.source-footer code {
+  background: rgba(13,39,80,0.07);
+  color: var(--navy);
+  padding: 1px 6px; border-radius: 3px;
 }
 
 /* Preview iframe */
-#previewFrame {
-  flex: 1;
-  border: none;
-  background: #fff;
-  width: 100%;
-}
+#previewFrame { flex: 1; border: none; background: #fff; width: 100%; }
 
-/* Empty state */
-.empty-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  color: var(--muted);
-  padding: 40px;
-  text-align: center;
-}
-.empty-center .big-letter {
-  font-family: var(--serif);
-  font-size: 5rem;
-  font-style: italic;
-  opacity: 0.08;
-  line-height: 1;
-  color: var(--text);
-}
-.empty-center p { font-size: 0.75rem; line-height: 1.7; }
-.empty-center .arrow {
-  font-size: 0.7rem;
-  color: var(--accent);
-  animation: pulse 2s ease-in-out infinite;
-}
-@keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
-
-/* ── Right: Fields ──────────────────────────────────────── */
-.fields-panel {
-  background: var(--surface);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+/* ── Right: fields ── */
+.fields-col {
+  background: var(--white);
+  display: flex; flex-direction: column; overflow: hidden;
 }
 .fields-head {
   padding: 14px 16px 10px;
   border-bottom: 1px solid var(--border);
-  font-size: 0.6rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: 0.58rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 500;
 }
-.fields-scroll { flex: 1; overflow-y: auto; padding: 14px; }
-.field-group { margin-bottom: 20px; }
-.field-label {
-  display: block;
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
+.fields-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+.field-block { margin-bottom: 20px; }
+.field-lbl {
+  display: flex; align-items: center; gap: 6px;
   margin-bottom: 6px;
 }
-.field-label span {
-  color: var(--accent);
-  font-size: 0.58rem;
-  margin-left: 4px;
+.field-lbl-text {
+  font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate); font-weight: 500;
 }
+.field-tag {
+  font-size: 0.55rem; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 99px;
+  font-weight: 600;
+}
+.field-tag.rich { background: rgba(13,39,80,0.08); color: var(--navy); }
+.field-tag.img  { background: rgba(245,196,44,0.2); color: #92700a; }
 
-/* Quill overrides for dark theme */
+/* Quill dark-ish overrides */
 .quill-wrap .ql-toolbar {
-  background: var(--raised) !important;
-  border: 1px solid var(--border2) !important;
-  border-bottom: 1px solid var(--border) !important;
+  background: var(--raise) !important;
+  border: 1px solid var(--border) !important;
+  border-bottom: 1px solid #d4dbe6 !important;
   border-radius: 5px 5px 0 0;
+  padding: 4px !important;
 }
-.quill-wrap .ql-toolbar .ql-stroke { stroke: var(--muted); }
-.quill-wrap .ql-toolbar .ql-fill { fill: var(--muted); }
-.quill-wrap .ql-toolbar button:hover .ql-stroke { stroke: var(--accent2); }
-.quill-wrap .ql-toolbar button:hover .ql-fill { fill: var(--accent2); }
-.quill-wrap .ql-toolbar .ql-picker-label { color: var(--muted); }
 .quill-wrap .ql-container {
-  background: var(--bg) !important;
-  border: 1px solid var(--border2) !important;
+  background: var(--white) !important;
+  border: 1px solid var(--border) !important;
   border-top: none !important;
   border-radius: 0 0 5px 5px;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  min-height: 80px;
+  font-family: inherit; font-size: 0.82rem;
+  min-height: 72px;
+  color: var(--slate);
 }
-.quill-wrap .ql-editor { min-height: 70px; color: var(--text); }
-.quill-wrap .ql-editor.ql-blank::before { color: var(--muted); font-style: normal; }
+.quill-wrap .ql-editor { min-height: 64px; color: var(--slate); }
+.quill-wrap .ql-editor.ql-blank::before {
+  font-style: normal; color: var(--muted); font-size: 0.78rem;
+}
+.quill-wrap .ql-toolbar .ql-stroke { stroke: var(--muted); }
+.quill-wrap .ql-toolbar .ql-fill   { fill:   var(--muted); }
+.quill-wrap .ql-toolbar button:hover .ql-stroke { stroke: var(--navy); }
+.quill-wrap .ql-toolbar .ql-picker-label { color: var(--muted); font-size: 0.72rem; }
 
-/* Image upload field */
+/* Image upload */
 .img-drop {
-  border: 1.5px dashed var(--border2);
-  border-radius: 6px;
-  padding: 14px 12px;
-  text-align: center;
-  cursor: pointer;
-  background: var(--bg);
-  transition: border-color 0.2s, background 0.2s;
+  border: 1.5px dashed var(--border);
+  border-radius: 6px; padding: 14px; text-align: center;
+  cursor: pointer; background: var(--raise);
+  transition: border-color 0.15s, background 0.15s;
   position: relative;
 }
-.img-drop:hover { border-color: var(--accent); background: rgba(59,130,246,0.04); }
+.img-drop:hover { border-color: var(--navy); background: rgba(13,39,80,0.03); }
 .img-drop input[type=file] {
-  position: absolute; inset: 0; opacity: 0;
-  cursor: pointer; width: 100%; height: 100%;
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
 }
-.img-drop-label { font-size: 0.68rem; color: var(--muted); pointer-events: none; line-height: 1.5; }
-.img-drop-label strong { color: var(--accent2); }
-.img-thumb {
-  max-width: 100%; max-height: 72px;
-  margin-top: 8px; border-radius: 4px;
-  display: none; border: 1px solid var(--border2);
-}
+.img-drop-lbl { font-size: 0.7rem; color: var(--muted); pointer-events: none; line-height: 1.5; }
+.img-drop-lbl strong { color: var(--navy); }
+.img-thumb { max-width: 100%; max-height: 64px; margin-top: 8px; border-radius: 4px; display: none; border: 1px solid var(--border); }
 
-/* Export footer */
+/* Export bar */
 .export-bar {
   padding: 12px 14px;
-  border-top: 1px solid var(--border);
-  background: var(--raised);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  border-top: 2px solid var(--border);
+  background: var(--raise);
+  display: flex; flex-direction: column; gap: 8px;
 }
 
-/* ── Buttons ─────────────────────────────────────────────── */
+/* ── Buttons ── */
 .btn {
   font-family: var(--mono);
-  font-size: 0.68rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 8px 16px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-  transition: all 0.15s;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
+  font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 9px 18px; border: none; cursor: pointer; border-radius: 5px;
+  transition: all 0.13s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font-weight: 500;
 }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent2); }
-.btn-ghost {
-  background: transparent;
-  border: 1px solid var(--border2);
-  color: var(--muted);
-}
-.btn-ghost:hover { border-color: var(--accent); color: var(--accent2); }
+.btn-navy { background: var(--navy); color: #fff; }
+.btn-navy:hover { background: #142e5e; }
+.btn-gold { background: var(--gold); color: var(--navy); }
+.btn-gold:hover { background: #e8b520; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+.btn-outline:hover { border-color: var(--navy); color: var(--navy); }
 .btn-full { width: 100%; }
-.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* ── Config modal ────────────────────────────────────────── */
+/* ── Export modal ── */
 .overlay {
   position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(4px);
-  display: none; align-items: center; justify-content: center;
-  z-index: 100;
+  background: rgba(13,39,80,0.5); backdrop-filter: blur(3px);
+  display: none; align-items: center; justify-content: center; z-index: 100;
 }
 .overlay.open { display: flex; }
 .modal {
-  background: var(--surface);
-  border: 1px solid var(--border2);
-  border-top: 2px solid var(--accent);
+  background: var(--white);
   border-radius: 8px;
-  padding: 28px;
-  width: 520px;
-  max-width: 95vw;
+  border-top: 4px solid var(--navy);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  padding: 28px; width: 700px; max-width: 96vw;
   position: relative;
 }
-.modal h2 {
-  font-family: var(--serif);
-  font-weight: 400;
-  font-size: 1.2rem;
-  margin-bottom: 6px;
-}
-.modal .modal-sub { font-size: 0.72rem; color: var(--muted); margin-bottom: 22px; line-height: 1.6; }
-.form-row { margin-bottom: 16px; }
-.form-row label { display: block; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-.form-row input {
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  padding: 9px 12px;
-  border-radius: 5px;
-  outline: none;
-  transition: border-color 0.15s;
-}
-.form-row input:focus { border-color: var(--accent); }
-.form-row .hint { font-size: 0.63rem; color: var(--muted); margin-top: 5px; line-height: 1.5; }
-.form-row .hint code { color: var(--accent2); }
+.modal h2 { font-family: var(--serif); font-weight: 400; font-size: 1.3rem; margin-bottom: 6px; color: var(--navy); }
+.modal-sub { font-size: 0.72rem; color: var(--muted); margin-bottom: 16px; line-height: 1.6; }
 .modal-close {
   position: absolute; top: 14px; right: 16px;
   background: none; border: none; color: var(--muted);
-  font-size: 1rem; cursor: pointer; line-height: 1;
+  font-size: 1.1rem; cursor: pointer;
 }
-.modal-close:hover { color: var(--text); }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
-
-/* ── Export modal ────────────────────────────────────────── */
+.modal-close:hover { color: var(--navy); }
 #exportOut {
-  width: 100%;
-  min-height: 220px;
-  max-height: 50vh;
-  background: var(--bg);
-  color: #94a3b8;
-  font-family: var(--mono);
-  font-size: 0.72rem;
-  line-height: 1.6;
-  padding: 16px;
-  border: 1px solid var(--border2);
-  border-radius: 5px;
-  resize: vertical;
-  outline: none;
+  width: 100%; min-height: 200px; max-height: 52vh;
+  background: #1e293b; color: #94a3b8;
+  font-family: var(--mono); font-size: 0.72rem; line-height: 1.6;
+  padding: 16px; border: none; border-radius: 5px; resize: vertical; outline: none;
 }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 14px; }
 
-/* ── Toast ───────────────────────────────────────────────── */
+/* ── Toast ── */
 #toast {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px);
-  background: var(--raised);
-  border: 1px solid var(--border2);
-  color: var(--text);
-  padding: 9px 20px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  opacity: 0;
-  transition: all 0.22s;
-  pointer-events: none;
-  white-space: nowrap;
-  z-index: 999;
+  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(10px);
+  background: var(--navy); color: #fff;
+  padding: 9px 22px; border-radius: 99px; border-left: 3px solid var(--gold);
+  font-size: 0.72rem; letter-spacing: 0.04em;
+  opacity: 0; pointer-events: none; z-index: 999;
+  transition: all 0.22s; white-space: nowrap;
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* ── Scrollbar ───────────────────────────────────────────── */
+/* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 </style>
 </head>
 <body>
 
 <div class="shell">
 
-  <!-- ══ TOP BAR ══════════════════════════════════════════ -->
+  <!-- ══ TOPBAR ══════════════════════════════════════════ -->
   <header class="topbar">
-    <div class="topbar-logo">
-      <div class="dot"></div>
-      Email Builder
-    </div>
-    <div class="topbar-repo" onclick="openConfig()" title="Configure GitHub repo source">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
-      <span id="repoLabel">Configure repo →</span>
+    <div class="topbar-brand">
+      <div class="icon">✉</div>
+      <div>
+        <h1 id="appTitle">Email <span>Builder</span></h1>
+        <div class="topbar-org" id="topbarOrg"></div>
+      </div>
     </div>
     <div class="topbar-right">
-      <div class="status-dot" id="statusDot" style="background:var(--muted);box-shadow:none;"></div>
-      <span class="status-label" id="statusLabel">not configured</span>
+      <div class="topbar-badge" id="repoBadge">loading…</div>
     </div>
   </header>
 
-  <!-- ══ LEFT SIDEBAR ═════════════════════════════════════ -->
+  <!-- ══ SIDEBAR ═════════════════════════════════════════ -->
   <aside class="sidebar">
     <div class="sidebar-head">
-      <span class="sidebar-title">Templates</span>
-      <button class="reload-btn" onclick="loadTemplates()" title="Reload templates">↻</button>
+      <span class="sidebar-label">Templates</span>
+      <button class="reload-btn" onclick="loadTemplates()" title="Reload">↻</button>
     </div>
     <ul class="tpl-list" id="tplList">
-      <li class="sidebar-state">Configure your repo<br>to load templates.</li>
+      <li class="sidebar-msg"><span class="spin">◌</span> Loading…</li>
     </ul>
   </aside>
 
-  <!-- ══ CENTER ════════════════════════════════════════════ -->
-  <main class="center" id="centerMain">
-    <div class="empty-center" id="emptyCenter">
-      <div class="big-letter">✉</div>
-      <div class="arrow">← Select a template</div>
-      <p>Choose a template from the sidebar<br>then fill in the fields on the right.</p>
+  <!-- ══ CENTER ══════════════════════════════════════════ -->
+  <main class="center">
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-envelope">✉</div>
+      <div class="empty-arrow">← Choose a template</div>
+      <p class="empty-hint">Select a template from the left,<br>fill in the fields on the right,<br>then export your finished email.</p>
     </div>
 
+    <!-- Editor (shown after selecting) -->
     <div id="editorWrap" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
       <div class="tab-bar">
         <div class="tab active" data-tab="preview" onclick="switchTab('preview')">Preview</div>
         <div class="tab" data-tab="source" onclick="switchTab('source')">Template Source</div>
       </div>
 
-      <!-- Preview -->
       <div class="tab-panel active" id="tab-preview">
         <iframe id="previewFrame" src="about:blank"></iframe>
       </div>
 
-      <!-- Source -->
       <div class="tab-panel" id="tab-source">
         <div class="source-wrap">
           <textarea id="tplSource" readonly spellcheck="false"></textarea>
         </div>
-        <div class="source-hint">
-          Read-only view of the raw template.
-          Use <code>{{field}}</code> for text · <code>{{image:field}}</code> for images.
-          Edit files in your GitHub repo to make changes.
+        <div class="source-footer">
+          Read-only · Edit in GitHub to make structural changes ·
+          <code>{{field}}</code> = rich text &nbsp; <code>{{image:field}}</code> = image upload
         </div>
       </div>
     </div>
+
   </main>
 
-  <!-- ══ RIGHT: FIELDS ═════════════════════════════════════ -->
-  <aside class="fields-panel">
+  <!-- ══ FIELDS ══════════════════════════════════════════ -->
+  <aside class="fields-col">
     <div class="fields-head">Fill Fields</div>
-    <div class="fields-scroll" id="fieldsScroll">
-      <p class="sidebar-state">Select a template<br>to see its fields.</p>
+    <div class="fields-body" id="fieldsBody">
+      <p class="sidebar-msg">Select a template<br>to see its fields.</p>
     </div>
     <div class="export-bar">
-      <button class="btn btn-primary btn-full" onclick="renderPreview()">▶ &nbsp;Render Preview</button>
-      <button class="btn btn-ghost btn-full" onclick="showExport()">↓ &nbsp;Export HTML</button>
+      <button class="btn btn-navy btn-full" onclick="renderPreview()">▶&nbsp; Render Preview</button>
+      <button class="btn btn-gold btn-full" onclick="openExport()">↓&nbsp; Export HTML</button>
     </div>
   </aside>
 
 </div>
 
-<!-- ══ CONFIG MODAL ═══════════════════════════════════════ -->
-<div class="overlay" id="configModal">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal('configModal')">✕</button>
-    <h2>Repository Config</h2>
-    <p class="modal-sub">Point the builder at your GitHub repo. Templates are fetched via <code style="color:var(--accent2)">raw.githubusercontent.com</code>.</p>
-
-    <div class="form-row">
-      <label>GitHub Username</label>
-      <input type="text" id="cfgUser" placeholder="e.g. acme-corp">
-    </div>
-    <div class="form-row">
-      <label>Repository Name</label>
-      <input type="text" id="cfgRepo" placeholder="e.g. email-templates">
-    </div>
-    <div class="form-row">
-      <label>Branch</label>
-      <input type="text" id="cfgBranch" placeholder="main" value="main">
-      <div class="hint">The branch your templates live on. Usually <code>main</code> or <code>master</code>.</div>
-    </div>
-    <div class="form-row">
-      <label>Path to templates.json</label>
-      <input type="text" id="cfgIndex" placeholder="templates.json" value="templates.json">
-      <div class="hint">Relative path from repo root. This file lists your templates.</div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal('configModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveConfig()">Save &amp; Load</button>
-    </div>
-  </div>
-</div>
-
 <!-- ══ EXPORT MODAL ═══════════════════════════════════════ -->
 <div class="overlay" id="exportModal">
-  <div class="modal" style="width:680px;">
-    <button class="modal-close" onclick="closeModal('exportModal')">✕</button>
+  <div class="modal">
+    <button class="modal-close" onclick="closeExport()">✕</button>
     <h2>Exported HTML</h2>
-    <p class="modal-sub">Copy this HTML and paste it into your email sending platform, or download it.</p>
+    <p class="modal-sub">Paste into your email platform, or download as a file. Images are embedded as base64 so they travel with the email.</p>
     <textarea id="exportOut" readonly></textarea>
-    <div class="modal-actions" style="margin-top:14px;">
-      <button class="btn btn-ghost" onclick="copyExport()">Copy to Clipboard</button>
-      <button class="btn btn-primary" onclick="downloadExport()">Download .html</button>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="copyExport()">Copy to Clipboard</button>
+      <button class="btn btn-navy" onclick="downloadExport()">Download .html</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
 <div id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// Config — persisted to localStorage
-// ═══════════════════════════════════════════════════════════
-const CFG_KEY = 'emailbuilder_config';
+// ═══════════════════════════════════════════════════════
+// Read config — set by config.js loaded in <head>
+// ═══════════════════════════════════════════════════════
+const CFG = (typeof EMAIL_BUILDER_CONFIG !== 'undefined')
+  ? EMAIL_BUILDER_CONFIG
+  : { githubUser: '', githubRepo: '', githubBranch: 'main', templatesIndex: 'templates.json', appName: 'Email Builder', orgName: '' };
 
-function getConfig() {
-  try { return JSON.parse(localStorage.getItem(CFG_KEY)) || {}; } catch { return {}; }
-}
-function saveConfig() {
-  const cfg = {
-    user:   document.getElementById('cfgUser').value.trim(),
-    repo:   document.getElementById('cfgRepo').value.trim(),
-    branch: document.getElementById('cfgBranch').value.trim() || 'main',
-    index:  document.getElementById('cfgIndex').value.trim() || 'templates.json',
-  };
-  if (!cfg.user || !cfg.repo) { toast('Username and repo name are required.'); return; }
-  localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
-  closeModal('configModal');
-  updateRepoLabel(cfg);
-  loadTemplates();
+function rawURL(filePath) {
+  return `https://raw.githubusercontent.com/${CFG.githubUser}/${CFG.githubRepo}/${CFG.githubBranch}/${filePath}`;
 }
 
-function rawURL(cfg, path) {
-  return `https://raw.githubusercontent.com/${cfg.user}/${cfg.repo}/${cfg.branch}/${path}`;
-}
-
-function updateRepoLabel(cfg) {
-  const label = document.getElementById('repoLabel');
-  const dot   = document.getElementById('statusDot');
-  const sl    = document.getElementById('statusLabel');
-  if (cfg.user && cfg.repo) {
-    label.textContent = `${cfg.user}/${cfg.repo}`;
-    dot.style.background   = 'var(--accent)';
-    dot.style.boxShadow    = '0 0 6px var(--accent)';
-    sl.textContent = cfg.branch;
-  } else {
-    label.textContent = 'Configure repo →';
-    dot.style.background = 'var(--muted)';
-    dot.style.boxShadow  = 'none';
-    sl.textContent = 'not configured';
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // State
-// ═══════════════════════════════════════════════════════════
-let templateIndex = [];   // [{id, name, description, file}]
-let activeTemplate = null; // {id, name, html}
-let quillMap = {};         // fieldKey → Quill instance
-let imageMap = {};         // fieldKey → base64 data URL
+// ═══════════════════════════════════════════════════════
+let index      = [];    // [{id,name,description,file}]
+let active     = null;  // {id,name,html}
+let quillMap   = {};    // fieldKey → Quill
+let imageMap   = {};    // fieldKey → base64
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // Boot
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  const cfg = getConfig();
-  if (cfg.user && cfg.repo) {
-    populateConfigForm(cfg);
-    updateRepoLabel(cfg);
-    loadTemplates();
-  } else {
-    openModal('configModal');
+  // Apply branding from config
+  document.title = CFG.appName || 'Email Builder';
+  document.getElementById('appTitle').innerHTML =
+    (CFG.appName || 'Email Builder').replace(/(\s\S+)$/, '<span>$1</span>');
+  if (CFG.orgName) document.getElementById('topbarOrg').textContent = CFG.orgName;
+  document.getElementById('repoBadge').textContent =
+    (CFG.githubUser && CFG.githubRepo)
+      ? `${CFG.githubUser}/${CFG.githubRepo}`
+      : 'not configured';
+
+  if (!CFG.githubUser || !CFG.githubRepo) {
+    document.getElementById('tplList').innerHTML =
+      `<li class="sidebar-msg err">⚠ Edit <strong>config.js</strong><br>to set your repo.</li>`;
+    return;
   }
+  loadTemplates();
 });
 
-function populateConfigForm(cfg) {
-  document.getElementById('cfgUser').value   = cfg.user   || '';
-  document.getElementById('cfgRepo').value   = cfg.repo   || '';
-  document.getElementById('cfgBranch').value = cfg.branch || 'main';
-  document.getElementById('cfgIndex').value  = cfg.index  || 'templates.json';
-}
-
-function openConfig() {
-  populateConfigForm(getConfig());
-  openModal('configModal');
-}
-
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // Load template index from GitHub
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 async function loadTemplates() {
-  const cfg = getConfig();
-  if (!cfg.user || !cfg.repo) { openModal('configModal'); return; }
-
-  const list = document.getElementById('tplList');
-  list.innerHTML = `<li class="sidebar-state"><span class="spin">◌</span> Loading…</li>`;
-
+  document.getElementById('tplList').innerHTML =
+    `<li class="sidebar-msg"><span class="spin">◌</span> Loading…</li>`;
   try {
-    const url = rawURL(cfg, cfg.index || 'templates.json');
-    const res = await fetch(url + '?_=' + Date.now()); // bust cache
+    const url = rawURL(CFG.templatesIndex || 'templates.json');
+    const res = await fetch(url + '?_=' + Date.now());
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    templateIndex = await res.json();
+    index = await res.json();
     renderSidebar();
-    toast(`Loaded ${templateIndex.length} template${templateIndex.length !== 1 ? 's' : ''}`);
   } catch(e) {
-    list.innerHTML = `<li class="sidebar-state error">
-      Failed to load templates.json<br>
-      <span style="font-size:0.6rem;opacity:0.7">${e.message}</span><br><br>
-      <span style="font-size:0.65rem;">Check your repo config and make sure<br>templates.json exists on that branch.</span>
-    </li>`;
+    document.getElementById('tplList').innerHTML =
+      `<li class="sidebar-msg err">Failed to load templates.json<br><small>${e.message}</small><br><br>Make sure the file exists<br>in your repo on branch <strong>${CFG.githubBranch}</strong>.</li>`;
   }
 }
 
 function renderSidebar() {
-  const list = document.getElementById('tplList');
-  if (!templateIndex.length) {
-    list.innerHTML = `<li class="sidebar-state">No templates found.<br>Add entries to templates.json.</li>`;
+  const ul = document.getElementById('tplList');
+  if (!index.length) {
+    ul.innerHTML = `<li class="sidebar-msg">No templates found in<br>templates.json.</li>`;
     return;
   }
-  list.innerHTML = templateIndex.map(t => `
-    <li class="tpl-item ${activeTemplate?.id === t.id ? 'active' : ''}"
-        onclick="selectTemplate('${esc(t.id)}')">
-      <div class="tpl-item-name">${esc(t.name)}</div>
-      ${t.description ? `<div class="tpl-item-desc">${esc(t.description)}</div>` : ''}
+  ul.innerHTML = index.map(t => `
+    <li class="tpl-item ${active?.id === t.id ? 'active' : ''}" onclick="selectTpl('${esc(t.id)}')">
+      <div class="tpl-name">${esc(t.name)}</div>
+      ${t.description ? `<div class="tpl-desc">${esc(t.description)}</div>` : ''}
     </li>
   `).join('');
 }
 
-// ═══════════════════════════════════════════════════════════
-// Select & fetch a template
-// ═══════════════════════════════════════════════════════════
-async function selectTemplate(id) {
-  const meta = templateIndex.find(t => t.id === id);
+// ═══════════════════════════════════════════════════════
+// Select template
+// ═══════════════════════════════════════════════════════
+async function selectTpl(id) {
+  const meta = index.find(t => t.id === id);
   if (!meta) return;
 
-  const cfg = getConfig();
-  const list = document.getElementById('tplList');
-
-  // Optimistic highlight
-  activeTemplate = null;
-  renderSidebar();
-  // Re-find and mark loading
-  [...list.querySelectorAll('.tpl-item')].forEach(el => {
-    if (el.querySelector('.tpl-item-name')?.textContent === meta.name)
-      el.style.opacity = '0.5';
-  });
+  // Visual feedback
+  [...document.querySelectorAll('.tpl-item')].forEach(el => el.style.opacity = '0.5');
 
   try {
-    const url = rawURL(cfg, meta.file);
-    const res = await fetch(url + '?_=' + Date.now());
-    if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${meta.file}`);
+    const res = await fetch(rawURL(meta.file) + '?_=' + Date.now());
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
 
-    activeTemplate = { id, name: meta.name, file: meta.file, html };
+    active = { id, name: meta.name, html };
     renderSidebar();
-    showEditor(html);
+    openEditor(html);
     buildFields(html);
     toast(`"${meta.name}" loaded`);
   } catch(e) {
-    renderSidebar();
+    [...document.querySelectorAll('.tpl-item')].forEach(el => el.style.opacity = '');
     toast(`Error: ${e.message}`);
   }
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // Editor
-// ═══════════════════════════════════════════════════════════
-function showEditor(html) {
-  document.getElementById('emptyCenter').style.display = 'none';
+// ═══════════════════════════════════════════════════════
+function openEditor(html) {
+  document.getElementById('emptyState').style.display = 'none';
   const wrap = document.getElementById('editorWrap');
   wrap.style.display = 'flex';
   document.getElementById('tplSource').value = html;
-  // Clear preview
   document.getElementById('previewFrame').srcdoc = '';
   switchTab('preview');
 }
 
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  document.querySelectorAll('.tab').forEach(t =>
+    t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach(p =>
+    p.classList.toggle('active', p.id === 'tab-' + name));
 }
 
-// ═══════════════════════════════════════════════════════════
-// Field detection & building
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+// Field detection + builder
+// ═══════════════════════════════════════════════════════
 function detectFields(html) {
-  const textRe  = /\{\{([^}:][^}]*)\}\}/g;
-  const imageRe = /\{\{image:([^}]+)\}\}/g;
-  const text   = [...new Set([...html.matchAll(textRe)].map(m => m[1]))];
-  const images = [...new Set([...html.matchAll(imageRe)].map(m => m[1]))];
+  const text   = [...new Set([...html.matchAll(/\{\{([^}:][^}]*)\}\}/g)].map(m => m[1]))];
+  const images = [...new Set([...html.matchAll(/\{\{image:([^}]+)\}\}/g)].map(m => m[1]))];
   return { text, images };
 }
 
@@ -794,48 +596,48 @@ function buildFields(html) {
   const { text, images } = detectFields(html);
   quillMap = {};
   imageMap = {};
-
-  const scroll = document.getElementById('fieldsScroll');
+  const body = document.getElementById('fieldsBody');
 
   if (!text.length && !images.length) {
-    scroll.innerHTML = '<p class="sidebar-state">No <code style="color:var(--accent2)">{{placeholders}}</code><br>found in this template.</p>';
+    body.innerHTML = `<p class="sidebar-msg">No <code>{{placeholders}}</code><br>found in this template.</p>`;
     return;
   }
 
   let out = '';
-
   text.forEach(key => {
-    const id = safeId(key);
-    const label = key.replace(/_/g, ' ');
+    const sid = sid_(key);
+    const lbl = key.replace(/_/g, ' ');
     out += `
-      <div class="field-group">
-        <label class="field-label">${esc(label)} <span>rich text</span></label>
-        <div class="quill-wrap">
-          <div id="q-${id}"></div>
+      <div class="field-block">
+        <div class="field-lbl">
+          <span class="field-lbl-text">${esc(lbl)}</span>
+          <span class="field-tag rich">rich text</span>
         </div>
+        <div class="quill-wrap"><div id="q-${sid}"></div></div>
       </div>`;
   });
-
   images.forEach(key => {
-    const id = safeId(key);
-    const label = key.replace(/_/g, ' ');
+    const sid = sid_(key);
+    const lbl = key.replace(/_/g, ' ');
     out += `
-      <div class="field-group">
-        <label class="field-label">${esc(label)} <span>image</span></label>
+      <div class="field-block">
+        <div class="field-lbl">
+          <span class="field-lbl-text">${esc(lbl)}</span>
+          <span class="field-tag img">image</span>
+        </div>
         <div class="img-drop">
           <input type="file" accept="image/*" onchange="handleImg(event,'${esc(key)}')">
-          <div class="img-drop-label"><strong>Click to upload</strong> or drag image here</div>
-          <img class="img-thumb" id="thumb-${id}" alt="">
+          <div class="img-drop-lbl"><strong>Click to upload</strong><br>or drag image here</div>
+          <img class="img-thumb" id="thumb-${sid}" alt="">
         </div>
       </div>`;
   });
 
-  scroll.innerHTML = out;
+  body.innerHTML = out;
 
-  // Mount Quill instances
+  // Mount Quill per field
   text.forEach(key => {
-    const id = safeId(key);
-    const q = new Quill(`#q-${id}`, {
+    const q = new Quill(`#q-${sid_(key)}`, {
       theme: 'snow',
       placeholder: key.replace(/_/g, ' ') + '…',
       modules: {
@@ -852,33 +654,35 @@ function buildFields(html) {
   });
 }
 
-function handleImg(event, key) {
-  const file = event.target.files[0];
+function handleImg(e, key) {
+  const file = e.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    imageMap[key] = e.target.result;
-    const thumb = document.getElementById('thumb-' + safeId(key));
-    if (thumb) { thumb.src = e.target.result; thumb.style.display = 'block'; }
+  const r = new FileReader();
+  r.onload = ev => {
+    imageMap[key] = ev.target.result;
+    const thumb = document.getElementById('thumb-' + sid_(key));
+    if (thumb) { thumb.src = ev.target.result; thumb.style.display = 'block'; }
+    const lbl = thumb?.closest('.img-drop')?.querySelector('.img-drop-lbl');
+    if (lbl) lbl.textContent = file.name;
   };
-  reader.readAsDataURL(file);
+  r.readAsDataURL(file);
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // Render
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function buildOutput() {
-  if (!activeTemplate) return null;
-  let html = activeTemplate.html;
+  if (!active) return null;
+  let html = active.html;
 
   Object.entries(quillMap).forEach(([key, q]) => {
     html = html.replaceAll(`{{${key}}}`, q.root.innerHTML);
   });
-  Object.entries(imageMap).forEach(([key, dataUrl]) => {
-    html = html.replaceAll(`{{image:${key}}}`, dataUrl);
+  Object.entries(imageMap).forEach(([key, b64]) => {
+    html = html.replaceAll(`{{image:${key}}}`, b64);
   });
 
-  // Clear unfilled placeholders
+  // Clear any remaining unfilled placeholders
   html = html.replace(/\{\{image:[^}]+\}\}/g, '');
   html = html.replace(/\{\{[^}]+\}\}/g, '');
   return html;
@@ -892,60 +696,53 @@ function renderPreview() {
   toast('Preview updated');
 }
 
-function showExport() {
+function openExport() {
   const out = buildOutput();
   if (!out) { toast('Select a template first.'); return; }
   document.getElementById('exportOut').value = out;
-  openModal('exportModal');
+  document.getElementById('exportModal').classList.add('open');
 }
+function closeExport() { document.getElementById('exportModal').classList.remove('open'); }
+
+document.getElementById('exportModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('exportModal')) closeExport();
+});
 
 function copyExport() {
-  const val = document.getElementById('exportOut').value;
-  navigator.clipboard.writeText(val).then(() => toast('Copied!'));
+  navigator.clipboard.writeText(document.getElementById('exportOut').value)
+    .then(() => toast('Copied to clipboard!'));
 }
-
 function downloadExport() {
   const val  = document.getElementById('exportOut').value;
-  const name = (activeTemplate?.name || 'email').replace(/\s+/g, '_') + '_export.html';
-  const a = document.createElement('a');
-  a.href     = 'data:text/html;charset=utf-8,' + encodeURIComponent(val);
-  a.download = name;
+  const name = (active?.name || 'email').replace(/\s+/g, '_') + '_export.html';
+  const a = Object.assign(document.createElement('a'), {
+    href: 'data:text/html;charset=utf-8,' + encodeURIComponent(val),
+    download: name
+  });
   a.click();
   toast('Downloaded!');
 }
 
-// ═══════════════════════════════════════════════════════════
-// Modals
-// ═══════════════════════════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-
-document.querySelectorAll('.overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
-});
-
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // Toast
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 let _tt;
 function toast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(_tt);
-  _tt = setTimeout(() => el.classList.remove('show'), 2400);
+  _tt = setTimeout(() => el.classList.remove('show'), 2500);
 }
 
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 // Utils
-// ═══════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c =>
-    ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function safeId(key) {
-  return key.replace(/[^a-zA-Z0-9_-]/g, '_');
-}
+function sid_(key) { return key.replace(/[^a-zA-Z0-9_-]/g, '_'); }
 </script>
 </body>
 </html>
