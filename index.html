@@ -466,68 +466,59 @@ html, body { height: 100%; background: var(--bg); color: var(--navy); font-famil
 
 <script>
 // ═══════════════════════════════════════════════════════
-// Read config — set by config.js loaded in <head>
+// Config — provided by config.js (loaded before this)
 // ═══════════════════════════════════════════════════════
 const CFG = (typeof EMAIL_BUILDER_CONFIG !== 'undefined')
   ? EMAIL_BUILDER_CONFIG
-  : { githubUser: '', githubRepo: '', githubBranch: 'main', templatesIndex: 'templates.json', appName: 'Email Builder', orgName: '' };
+  : { appName: 'Email Builder', orgName: '', templatesIndex: 'templates.json' };
 
-function rawURL(filePath) {
-  return `https://raw.githubusercontent.com/${CFG.githubUser}/${CFG.githubRepo}/${CFG.githubBranch}/${filePath}`;
+// All files live in the same repo as this page, so we use
+// plain relative URLs — no GitHub API, no CORS issues.
+function relURL(filePath) {
+  return filePath.replace(/^\//, '') + '?_=' + Date.now();
 }
 
 // ═══════════════════════════════════════════════════════
 // State
 // ═══════════════════════════════════════════════════════
-let index      = [];    // [{id,name,description,file}]
-let active     = null;  // {id,name,html}
-let quillMap   = {};    // fieldKey → Quill
-let imageMap   = {};    // fieldKey → base64
+let index    = [];   // [{id,name,description,file}]
+let active   = null; // {id,name,html}
+let quillMap = {};   // fieldKey → Quill instance
+let imageMap = {};   // fieldKey → base64 data URL
 
 // ═══════════════════════════════════════════════════════
 // Boot
 // ═══════════════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', () => {
-  // Apply branding from config
   document.title = CFG.appName || 'Email Builder';
   document.getElementById('appTitle').innerHTML =
     (CFG.appName || 'Email Builder').replace(/(\s\S+)$/, '<span>$1</span>');
   if (CFG.orgName) document.getElementById('topbarOrg').textContent = CFG.orgName;
-  document.getElementById('repoBadge').textContent =
-    (CFG.githubUser && CFG.githubRepo)
-      ? `${CFG.githubUser}/${CFG.githubRepo}`
-      : 'not configured';
-
-  if (!CFG.githubUser || !CFG.githubRepo) {
-    document.getElementById('tplList').innerHTML =
-      `<li class="sidebar-msg err">⚠ Edit <strong>config.js</strong><br>to set your repo.</li>`;
-    return;
-  }
+  document.getElementById('repoBadge').textContent = CFG.orgName || CFG.appName || 'Email Builder';
   loadTemplates();
 });
 
 // ═══════════════════════════════════════════════════════
-// Load template index from GitHub
+// Load template index
 // ═══════════════════════════════════════════════════════
 async function loadTemplates() {
   document.getElementById('tplList').innerHTML =
     `<li class="sidebar-msg"><span class="spin">◌</span> Loading…</li>`;
   try {
-    const url = rawURL(CFG.templatesIndex || 'templates.json');
-    const res = await fetch(url + '?_=' + Date.now());
+    const res = await fetch(relURL(CFG.templatesIndex || 'templates.json'));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     index = await res.json();
     renderSidebar();
   } catch(e) {
     document.getElementById('tplList').innerHTML =
-      `<li class="sidebar-msg err">Failed to load templates.json<br><small>${e.message}</small><br><br>Make sure the file exists<br>in your repo on branch <strong>${CFG.githubBranch}</strong>.</li>`;
+      `<li class="sidebar-msg err">Failed to load templates.json<br><small>${e.message}</small><br><br>Make sure templates.json<br>exists in your repo root.</li>`;
   }
 }
 
 function renderSidebar() {
   const ul = document.getElementById('tplList');
   if (!index.length) {
-    ul.innerHTML = `<li class="sidebar-msg">No templates found in<br>templates.json.</li>`;
+    ul.innerHTML = `<li class="sidebar-msg">No templates found.</li>`;
     return;
   }
   ul.innerHTML = index.map(t => `
@@ -545,11 +536,10 @@ async function selectTpl(id) {
   const meta = index.find(t => t.id === id);
   if (!meta) return;
 
-  // Visual feedback
   [...document.querySelectorAll('.tpl-item')].forEach(el => el.style.opacity = '0.5');
 
   try {
-    const res = await fetch(rawURL(meta.file) + '?_=' + Date.now());
+    const res = await fetch(relURL(meta.file));
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
 

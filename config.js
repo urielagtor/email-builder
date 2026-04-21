@@ -1,24 +1,16 @@
 // ─────────────────────────────────────────────────────────────
 //  EMAIL BUILDER CONFIG
-//  Edit this file once, then push. Your team never touches it.
+//  Edit this file once. Your team never needs to touch anything.
 // ─────────────────────────────────────────────────────────────
 
 const EMAIL_BUILDER_CONFIG = {
 
-  // Your GitHub username or org name
-  githubUser: "YOUR_GITHUB_USERNAME",
-
-  // The repository where your template .html files live
-  githubRepo: "YOUR_REPO_NAME",
-
-  // The branch to fetch from (usually "main")
-  githubBranch: "main",
-
-  // Path to the templates index file, relative to repo root
-  templatesIndex: "templates.json",
-
-  // Optional: branding shown in the top bar
+  // Branding shown in the top bar
   appName: "Email Builder",
-  orgName: "Christian Fellowship Club",
+  orgName: "Christian Fellowship Club · Oregon Tech",
+
+  // Path to your templates index, relative to this file.
+  // You'll almost never need to change this.
+  templatesIndex: "templates.json",
 
 };

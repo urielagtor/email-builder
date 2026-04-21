@@ -23,18 +23,17 @@ your-repo/
 
 ### 1. Edit `config.js`
 
-Open `config.js` and fill in your details:
+Open `config.js` and update the branding:
 
 ```js
 const EMAIL_BUILDER_CONFIG = {
-  githubUser:     "your-username",   // GitHub username or org
-  githubRepo:     "email-templates", // Repo name
-  githubBranch:   "main",            // Branch (usually "main")
-  templatesIndex: "templates.json",  // Leave as-is
-  appName:        "Email Builder",
-  orgName:        "Christian Fellowship Club",
+  appName: "Email Builder",
+  orgName: "Christian Fellowship Club · Oregon Tech",
+  templatesIndex: "templates.json", // leave as-is
 };
 ```
+
+That's it — no GitHub credentials, no tokens. Everything loads via relative URLs since the app and templates live in the same repo.
 
 ### 2. Push to GitHub
 
